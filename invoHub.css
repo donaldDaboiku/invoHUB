@@ -79,9 +79,7 @@ body {
 .license-gate-logo {
     font-size: 48px;
     margin-bottom: 16px;
-    background-image: url('./icon/icon-192-maskable.png');
-    background-size: cover;
-    border-radius: 6px;
+    
 }
 
 .license-gate-title {

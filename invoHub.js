@@ -3,11 +3,12 @@
 
 // ==================== CONFIGURATION ====================
 // Replace this URL with your actual Netlify/Vercel function URL after deployment
-const LICENSE_VALIDATE_URL = '/.netlify/functions/validate-license';
-// For Vercel use: '/api/validate-license'
+const GUMROAD_PRODUCT_PERMALINK = 'YOUR_PRODUCT_PERMALINK_HERE'; // Get from Gumroad Dashboard
 
 // Gumroad product page URL — replace with your actual product URL
-const GUMROAD_URL = 'https://YOUR-STORE.gumroad.com/l/invoHub';
+const GUMROAD_URL = 'https://gitsystem.gumroad.com/l/mcfjio'; // Your real Gumroad URL
+// For Vercel use: '/api/validate-license'
+
 
 // ==================== STORAGE KEYS ====================
 const STORAGE_KEYS = {
@@ -17,8 +18,8 @@ const STORAGE_KEYS = {
     LOGO:       'invoHub_logo',
     LICENSE_KEY: 'invoHub_license_key',
     LICENSE_EMAIL: 'invoHub_license_email',
-    LICENSE_DEVICES: 'invoHub_license_devices',
-    DEVICE_ACTIVATED: 'invoHub_device_activated',
+    // LICENSE_DEVICES: 'invoHub_license_devices',
+    LICENSE_ACTIVATED: 'invoHub_license_activated',
     PRIVACY_ACK: 'invoHub_privacy_ack',
     INVOICE_COUNTER: 'invoHub_invoice_counter' // persistent sequential counter
 };
@@ -77,13 +78,70 @@ function showLicenseGate(prefillKey = '') {
     });
 }
 
+// async function activateLicense() {
+//     const input = document.getElementById('license-key-input');
+//     const btn = document.getElementById('activate-btn');
+//     const btnText = document.getElementById('activate-btn-text');
+//     const errorEl = document.getElementById('license-error');
+
+//     const key = input.value.trim().toUpperCase();
+
+//     if (!key || key.length < 8) {
+//         input.classList.add('error');
+//         errorEl.textContent = 'Please enter a valid license key from your Gumroad receipt email.';
+//         return;
+//     }
+
+//     btn.disabled = true;
+//     btnText.innerHTML = '<span class="license-loader"></span> Validating...';
+//     errorEl.textContent = '';
+
+//     try {
+//         const response = await fetch(LICENSE_VALIDATE_URL, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ license_key: key, action: 'activate' })
+//         });
+
+//         const data = await response.json();
+
+//         if (data.success) {
+//             localStorage.setItem(STORAGE_KEYS.LICENSE_KEY, key);
+//             localStorage.setItem(STORAGE_KEYS.LICENSE_EMAIL, data.email || 'Verified');
+//             localStorage.setItem(STORAGE_KEYS.DEVICE_ACTIVATED, 'true');
+//             if (data.devices_used && data.devices_max) {
+//                 localStorage.setItem(STORAGE_KEYS.LICENSE_DEVICES, `${data.devices_used}/${data.devices_max}`);
+//             }
+
+//             input.classList.add('success');
+//             btnText.innerHTML = '✓ Activated! Loading app...';
+
+//             setTimeout(() => {
+//                 document.getElementById('license-gate').classList.remove('visible');
+//                 bootApp();
+//             }, 800);
+//         } else {
+//             input.classList.add('error');
+//             errorEl.textContent = data.error || 'Invalid license key. Please check your Gumroad receipt email.';
+//             btn.disabled = false;
+//             btnText.textContent = '✓ Activate License';
+//         }
+//     } catch (err) {
+//         console.error('License validation error:', err);
+//         input.classList.add('error');
+//         errorEl.textContent = 'Could not reach activation server. Please check your internet connection and try again.';
+//         btn.disabled = false;
+//         btnText.textContent = '✓ Activate License';
+//     }
+// }
+
 async function activateLicense() {
     const input = document.getElementById('license-key-input');
     const btn = document.getElementById('activate-btn');
     const btnText = document.getElementById('activate-btn-text');
     const errorEl = document.getElementById('license-error');
 
-    const key = input.value.trim().toUpperCase();
+    const key = input.value.trim();
 
     if (!key || key.length < 8) {
         input.classList.add('error');
@@ -96,21 +154,23 @@ async function activateLicense() {
     errorEl.textContent = '';
 
     try {
-        const response = await fetch(LICENSE_VALIDATE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ license_key: key, action: 'activate' })
-        });
+        // Validate with Gumroad API directly
+        const result = await validateGumroadLicense(key, true); // true = increment uses
 
-        const data = await response.json();
-
-        if (data.success) {
-            localStorage.setItem(STORAGE_KEYS.LICENSE_KEY, key);
-            localStorage.setItem(STORAGE_KEYS.LICENSE_EMAIL, data.email || 'Verified');
-            localStorage.setItem(STORAGE_KEYS.DEVICE_ACTIVATED, 'true');
-            if (data.devices_used && data.devices_max) {
-                localStorage.setItem(STORAGE_KEYS.LICENSE_DEVICES, `${data.devices_used}/${data.devices_max}`);
+        if (result.success) {
+            // Check if already at device limit (1 device per license)
+            if (result.uses > 1) {
+                input.classList.add('error');
+                errorEl.textContent = `This license is already activated on another device. Please deactivate the other device first, or contact support.`;
+                btn.disabled = false;
+                btnText.textContent = '✓ Activate License';
+                return;
             }
+
+            // Valid and within device limit - save activation
+            localStorage.setItem(STORAGE_KEYS.LICENSE_KEY, key);
+            localStorage.setItem(STORAGE_KEYS.LICENSE_EMAIL, result.email || 'Verified');
+            localStorage.setItem(STORAGE_KEYS.LICENSE_ACTIVATED, 'true');
 
             input.classList.add('success');
             btnText.innerHTML = '✓ Activated! Loading app...';
@@ -121,7 +181,7 @@ async function activateLicense() {
             }, 800);
         } else {
             input.classList.add('error');
-            errorEl.textContent = data.error || 'Invalid license key. Please check your Gumroad receipt email.';
+            errorEl.textContent = result.message || 'Invalid license key. Please check your Gumroad receipt email.';
             btn.disabled = false;
             btnText.textContent = '✓ Activate License';
         }
@@ -134,67 +194,110 @@ async function activateLicense() {
     }
 }
 
-// Silent background check on every app launch — no seat increment, just verifies key is still valid
-async function silentLicenseCheck(key, action) {
-    bootApp(action); // Boot immediately, check happens in background
-
+// Validate license with Gumroad API
+async function validateGumroadLicense(licenseKey, incrementUses = false) {
     try {
-        const response = await fetch(LICENSE_VALIDATE_URL, {
+        const formData = new URLSearchParams();
+        formData.append('product_id', GUMROAD_PRODUCT_PERMALINK);
+        formData.append('license_key', licenseKey);
+        formData.append('increment_uses_count', incrementUses ? 'true' : 'false');
+
+        const response = await fetch('https://api.gumroad.com/v2/licenses/verify', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ license_key: key, action: 'check' })
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
         });
 
         const data = await response.json();
 
-        if (!data.success) {
+        if (data.success && data.purchase) {
+            // Check if refunded or chargebacked
+            if (data.purchase.refunded) {
+                return {
+                    success: false,
+                    message: 'This license has been refunded and is no longer valid.'
+                };
+            }
+
+            if (data.purchase.chargebacked) {
+                return {
+                    success: false,
+                    message: 'This license is invalid due to a chargeback.'
+                };
+            }
+
+            return {
+                success: true,
+                email: data.purchase.email,
+                uses: data.uses || 1,
+                purchase: data.purchase
+            };
+        } else {
+            return {
+                success: false,
+                message: data.message || 'Invalid license key.'
+            };
+        }
+    } catch (error) {
+        console.error('Gumroad API error:', error);
+        throw error;
+    }
+}
+
+// Silent background check on every app launch — no seat increment, just verifies key is still valid
+async function silentLicenseCheck(key) {
+    try {
+        const result = await validateGumroadLicense(key, false); // false = don't increment
+
+        if (!result.success) {
             // Key revoked / refunded — sign out
             localStorage.removeItem(STORAGE_KEYS.LICENSE_KEY);
             localStorage.removeItem(STORAGE_KEYS.LICENSE_EMAIL);
-            localStorage.removeItem(STORAGE_KEYS.DEVICE_ACTIVATED);
-            localStorage.removeItem(STORAGE_KEYS.LICENSE_DEVICES);
-            alert('Your license is no longer valid. Please contact support.');
+            localStorage.removeItem(STORAGE_KEYS.LICENSE_ACTIVATED);
+            alert('Your license is no longer valid (possibly refunded or revoked). Please contact support if this is an error.');
             window.location.reload();
             return;
         }
 
-        // Update device count display
-        if (data.devices_used && data.devices_max) {
-            const devStr = `${data.devices_used}/${data.devices_max}`;
-            localStorage.setItem(STORAGE_KEYS.LICENSE_DEVICES, devStr);
-            const el = document.getElementById('settings-device-count');
-            if (el) el.textContent = `${devStr} devices activated`;
+        // Update email display in case it changed
+        if (result.email) {
+            localStorage.setItem(STORAGE_KEYS.LICENSE_EMAIL, result.email);
+            const emailEl = document.getElementById('sidebar-email-text');
+            if (emailEl) emailEl.textContent = result.email;
         }
 
     } catch (err) {
-        // Offline — allow, since key is stored locally
-        console.log('[License] Offline check skipped');
+        // Offline — allow, since key is stored locally and app works offline
+        console.log('[License] Offline - skipping validation check');
     }
 }
-
 async function deactivateLicense() {
-    if (!confirm('This will release this device\'s license seat and sign you out. You can re-activate on another device. Continue?')) return;
+    const confirmed = confirm(
+        '⚠️ DEACTIVATE THIS DEVICE?\n\n' +
+        'This will:\n' +
+        '• Sign you out of InvoHub on THIS device\n' +
+        '• Allow you to activate on a different device\n' +
+        '• Your invoice data will remain on this device (but locked)\n\n' +
+        'Continue with deactivation?'
+    );
 
-    const key = localStorage.getItem(STORAGE_KEYS.LICENSE_KEY);
-    const wasActivated = localStorage.getItem(STORAGE_KEYS.DEVICE_ACTIVATED);
+    if (!confirmed) return;
 
-    // Tell server to free the seat
-    if (key && wasActivated) {
-        try {
-            await fetch(LICENSE_VALIDATE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ license_key: key, action: 'deactivate' })
-            });
-        } catch (err) {
-            console.warn('Could not reach server to free seat — deactivating locally anyway');
-        }
-    }
+    // Note: Gumroad doesn't have a "decrement uses" API endpoint
+    // So we just clear local activation - user must contact support if they need help
 
     localStorage.removeItem(STORAGE_KEYS.LICENSE_KEY);
     localStorage.removeItem(STORAGE_KEYS.LICENSE_EMAIL);
-    localStorage.removeItem(STORAGE_KEYS.DEVICE_ACTIVATED);
-    localStorage.removeItem(STORAGE_KEYS.LICENSE_DEVICES);
+    localStorage.removeItem(STORAGE_KEYS.LICENSE_ACTIVATED);
+
+    alert(
+        '✓ Device Deactivated\n\n' +
+        'You can now activate InvoHub on another device using your license key.\n\n' +
+        'Your invoice data remains on this device but the app is locked.'
+    );
+
     window.location.reload();
 }
 
