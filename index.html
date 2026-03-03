@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff6b35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="InvoHub">
+    <meta name="description" content="Professional invoicing app. Works offline. Your data never leaves your device.">
+
+    <title>invoHub — Professional Invoicing</title>
+
+    <link rel="icon" href="./icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="invoHub.css">
+</head>
+<body>
+
+    <!-- ==================== LICENSE GATE ==================== -->
+    <div id="license-gate" class="visible">
+        <div class="license-gate-card">
+            <div class="license-gate-logo">📄</div>
+            <div class="license-gate-title">invo<span>Hub</span></div>
+            <div class="license-gate-sub">Enter your license key to activate the app.</div>
+
+            <input
+                type="text"
+                id="license-key-input"
+                class="license-input"
+                placeholder="XXXX-XXXX-XXXX-XXXX"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="64"
+            >
+            <div class="license-error-msg" id="license-error"></div>
+
+            <button class="btn-activate" id="activate-btn" onclick="activateLicense()">
+                <span id="activate-btn-text">✓ Activate License</span>
+            </button>
+
+            <hr class="license-divider">
+
+            <div style="margin-bottom: 12px; color: var(--text-muted); font-size: 14px;">Don't have a license yet?</div>
+            <a href="https://YOUR-GUMROAD-URL.gumroad.com/l/invoHub" target="_blank" class="license-buy-link">
+                🛒 Buy InvoHub — One-time purchase →
+            </a>
+
+            <div class="license-privacy-note">
+                <span>🔒</span>
+                <span>Your business data is <strong>stored only on this device</strong> and never uploaded to any server. License validation is the only external request we make.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PRIVACY NOTICE (first run) ==================== -->
+    <div id="privacy-notice">
+        <div class="privacy-notice-text">
+            🔒 <strong>Your privacy:</strong> All invoices, customers, and settings are stored only on <strong>this device</strong>. We collect zero business data. Nothing is uploaded to any server.
+        </div>
+        <button class="btn-privacy-ok" onclick="acknowledgePrivacy()">Got it</button>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div class="app-container" id="main-app" style="display:none;">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">Invo<span>Hub</span> <small style="color: var(--text-muted); font-size: 13px;">v4</small></div>
+            </div>
+
+            <nav class="nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <div class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" data-page="invoices">
+                        <span class="nav-icon">📄</span>
+                        <span>Invoices</span>
+                    </div>
+                    <div class="nav-item" data-page="customers">
+                        <span class="nav-icon">👥</span>
+                        <span>Customers</span>
+                    </div>
+                    <div class="nav-item" data-page="reports">
+                        <span class="nav-icon">📈</span>
+                        <span>Reports</span>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <div class="nav-item" data-page="settings">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="support-status">
+                    <span class="status-dot"></span>
+                    <span>Licensed &amp; Active</span>
+                </div>
+                <div class="license-info-sidebar" id="sidebar-license-email">
+                    🔑 <span id="sidebar-email-text">Verified</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page">
+                <div class="header">
+                    <div class="header-title">
+                        <span>📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openInvoiceModal()">
+                        <span>+</span>
+                        <span>New Invoice</span>
+                    </button>
+                </div>
+                <div class="content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-value" id="total-revenue">₦0</div>
+                            <div class="stat-change positive"><span>↑</span><span id="revenue-change-text">All time</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Invoices</div>
+                            <div class="stat-value" id="total-invoices">0</div>
+                            <div class="stat-change positive"><span>↑</span><span id="invoices-change-text">All time</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value" id="pending-invoices">0</div>
+                            <div class="stat-change"><span>Awaiting payment</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Overdue</div>
+                            <div class="stat-value" style="color: var(--danger);" id="overdue-invoices">0</div>
+                            <div class="stat-change negative"><span>⚠️ Requires attention</span></div>
+                        </div>
+                    </div>
+
+                    <div class="invoice-section">
+                        <div class="section-header">
+                            <div class="section-title">Recent Invoices</div>
+                            <button class="btn btn-primary" onclick="openInvoiceModal()">+ New Invoice</button>
+                        </div>
+                        <div id="dashboard-invoices-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoices Page -->
+            <div id="invoices-page" class="page hidden">
+                <div class="header">
+                    <div class="header-title"><span>📄</span><span>Invoices</span></div>
+                    <button class="btn btn-primary" onclick="openInvoiceModal()">+ New Invoice</button>
+                </div>
+                <div class="content">
+                    <div class="invoice-section">
+                        <div class="section-header">
+                            <div class="section-title">All Invoices</div>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" class="search-input" placeholder="Search invoices..." id="search-input">
+                            <select class="filter-select" id="status-filter">
+                                <option value="all">All Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="pending">Pending</option>
+                                <option value="overdue">Overdue</option>
+                            </select>
+                        </div>
+                        <div id="invoices-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Page -->
+            <div id="customers-page" class="page hidden">
+                <div class="header">
+                    <div class="header-title"><span>👥</span><span>Customers</span></div>
+                    <button class="btn btn-primary" onclick="openCustomerModal()">+ Add Customer</button>
+                </div>
+                <div class="content">
+                    <div class="invoice-section">
+                        <div class="section-header">
+                            <div class="section-title">All Customers</div>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" class="search-input" placeholder="Search customers..." id="customer-search-input">
+                        </div>
+                        <div id="customers-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports-page" class="page hidden">
+                <div class="header">
+                    <div class="header-title"><span>📈</span><span>Reports</span></div>
+                    <button class="btn btn-secondary" onclick="exportReportData()">📥 Export CSV</button>
+                </div>
+                <div class="content">
+                    <div class="stats-grid" style="margin-bottom: 32px;">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-value" id="report-total-revenue">₦0</div>
+                            <div class="stat-change" id="report-revenue-change"></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Average Invoice Value</div>
+                            <div class="stat-value" id="report-avg-invoice">₦0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Collection Rate</div>
+                            <div class="stat-value" id="report-collection-rate">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Customers</div>
+                            <div class="stat-value" id="report-active-customers">0</div>
+                        </div>
+                    </div>
+
+                    <div class="invoice-section" style="margin-bottom: 24px;">
+                        <div class="section-header"><div class="section-title">Revenue by Month</div></div>
+                        <div style="padding: 24px; height: 300px; position: relative;">
+                            <canvas id="revenue-chart"></canvas></div>
+                    </div>
+
+                    <div class="invoice-section" style="margin-bottom: 24px;">
+                        <div class="section-header"><div class="section-title">Top Customers</div></div>
+                        <div id="top-customers-container"></div>
+                    </div>
+
+                    <div class="invoice-section">
+                        <div class="section-header"><div class="section-title">Invoice Status Breakdown</div></div>
+                        <div style="padding: 24px; max-width: 400px; margin: 0 auto;">
+                            <canvas id="status-chart" style="max-height: 250px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page hidden">
+                <div class="header">
+                    <div class="header-title"><span>⚙️</span><span>Settings</span></div>
+                </div>
+                <div class="content">
+
+                    <!-- License Info -->
+                    <div class="settings-section">
+                        <div class="settings-title">🔑 License</div>
+                        <div class="settings-subtitle">Your software license information</div>
+                        <div class="license-status-card">
+                            <div class="license-status-icon">✅</div>
+                            <div class="license-status-details">
+                                <div class="license-status-label">Status</div>
+                                <div class="license-status-value">Active — One-time Purchase</div>
+                                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;" id="settings-license-email">Licensed to: —</div>
+                                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;" id="settings-device-count">— devices activated</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-secondary" onclick="copyLicenseKey()">📋 Copy License Key</button>
+                            <button class="btn btn-danger" onclick="deactivateLicense()">🔓 Deactivate This Device</button>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="settings-section">
+                        <div class="settings-title">General Settings</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Currency</label>
+                                <select class="form-select" id="currency-select">
+                                    <option value="NGN">Nigerian Naira (₦)</option>
+                                    <option value="USD">US Dollar ($)</option>
+                                    <option value="EUR">Euro (€)</option>
+                                    <option value="GBP">British Pound (£)</option>
+                                    <option value="ZAR">South African Rand (R)</option>
+                                    <option value="KES">Kenyan Shilling (KSh)</option>
+                                    <option value="GHS">Ghanaian Cedi (GH₵)</option>
+                                    <option value="XOF">West African CFA (CFA)</option>
+                                    <option value="JPY">Japanese Yen (¥)</option>
+                                    <option value="CNY">Chinese Yuan (¥)</option>
+                                    <option value="INR">Indian Rupee (₹)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Theme</label>
+                                <select class="form-select" id="theme-select">
+                                    <option value="dark">Dark Theme</option>
+                                    <option value="light">Light Theme</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tax Rate (%)</label>
+                                <input type="number" class="form-input" id="tax-rate" placeholder="10" min="0" max="100" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date Format</label>
+                                <select class="form-select" id="date-format">
+                                    <option value="us">MM/DD/YYYY (US)</option>
+                                    <option value="eu">DD/MM/YYYY (EU)</option>
+                                    <option value="iso">YYYY-MM-DD (ISO)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Logo -->
+                    <div class="settings-section">
+                        <div class="settings-title">Company Logo</div>
+                        <div class="settings-subtitle">Upload your logo to appear on invoices and receipts</div>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="logo-input" class="file-input" accept="image/*" onchange="handleLogoUpload(event)">
+                            <label for="logo-input" class="file-input-btn">📷 Choose Logo</label>
+                        </div>
+                        <div class="logo-preview" id="logo-preview">
+                            <div class="logo-preview-empty">No logo uploaded</div>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top: 12px;" onclick="removeLogo()">Remove Logo</button>
+                    </div>
+
+                    <!-- Company Info -->
+                    <div class="settings-section">
+                        <div class="settings-title">Company Information</div>
+                        <div class="settings-subtitle">Appears on all invoices and receipts</div>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label class="form-label">Company Name</label>
+                                <input type="text" class="form-input" id="company-name" placeholder="Your Company Name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Company Address</label>
+                                <textarea class="form-textarea" id="company-address" placeholder="123 Main Street&#10;City, State ZIP" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="company-email" placeholder="info@company.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-input" id="company-phone" placeholder="+234 xxx xxxx xxx">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Website (Optional)</label>
+                                <input type="url" class="form-input" id="company-website" placeholder="www.yourcompany.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tax ID / RC Number</label>
+                                <input type="text" class="form-input" id="company-tax-id" placeholder="RC123456">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Details -->
+                    <div class="settings-section">
+                        <div class="settings-title">Bank Details</div>
+                        <div class="settings-subtitle">Payment details that appear on unpaid invoices</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Bank Name</label>
+                                <input type="text" class="form-input" id="bank-name" placeholder="First Bank of Nigeria">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Account Name</label>
+                                <input type="text" class="form-input" id="account-name" placeholder="Your Company Name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-input" id="account-number" placeholder="1234567890">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Routing / Sort Code</label>
+                                <input type="text" class="form-input" id="routing-number" placeholder="123456789">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">SWIFT / BIC (Optional)</label>
+                                <input type="text" class="form-input" id="swift-code" placeholder="FBNINGLA">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">IBAN (Optional)</label>
+                                <input type="text" class="form-input" id="iban" placeholder="NG21 0123 4567 8901 2345 678">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Marketing -->
+                    <div class="settings-section">
+                        <div class="settings-title">Email Marketing</div>
+                        <div class="settings-subtitle">Optionally collect customer emails with explicit consent</div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="collect-emails-toggle" class="toggle-input">
+                                <span class="form-label" style="margin: 0;">Enable email collection for marketing</span>
+                            </label>
+                            <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">
+                                Customers must explicitly consent before their email is collected for marketing purposes.
+                            </p>
+                        </div>
+
+                        <div id="email-settings-container" style="display: none;">
+                            <div class="form-group full-width" style="margin-bottom: 16px;">
+                                <label class="form-label">Customer Consent Message</label>
+                                <textarea class="form-textarea" id="email-consent-message" rows="3"
+                                    placeholder="I agree to receive promotional emails from [Company]. You can unsubscribe at any time."></textarea>
+                            </div>
+                            <button class="btn btn-secondary" onclick="viewEmailList()">
+                                📧 View Email List (<span id="email-count">0</span> contacts)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="settings-section">
+                        <div class="settings-title">Data Management</div>
+                        <div class="settings-subtitle">All data is stored locally on your device only</div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="exportData()">📥 Backup Data</button>
+                            <label class="file-input-btn" style="cursor:pointer;">
+                                📤 Restore Backup
+                                <input type="file" accept=".json" style="display:none;" onchange="importData(this.files[0])">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                        <button class="btn btn-secondary" onclick="loadSettings()">Reset Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Footer -->
+            <footer id="app-footer">
+                <div id="footer-content"></div>
+            </footer>
+
+        </div><!-- end .main-content -->
+    </div><!-- end .app-container -->
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Email List Modal -->
+    <div id="email-list-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">Customer Email List</div>
+                <button class="close-btn" onclick="closeEmailListModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Customers who have provided email addresses and consented to marketing.</p>
+                <div id="email-list-container"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmailListModal()">Close</button>
+                <button class="btn btn-primary" onclick="exportEmailList()">📥 Export Email List</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New/Edit Invoice Modal -->
+    <div id="invoice-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Create New Invoice</div>
+                <button class="close-btn" onclick="closeInvoiceModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="invoice-form" onsubmit="return false;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Invoice Number</label>
+                            <input type="text" class="form-input" id="invoice-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="invoice-status">
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="overdue">Overdue</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invoice Date</label>
+                            <input type="date" class="form-input" id="invoice-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-input" id="due-date" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" class="form-input" id="customer-name" required autocomplete="off">
+                            <div id="customer-suggestions" style="position:relative;"></div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Customer Address</label>
+                            <textarea class="form-textarea" id="customer-address" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Customer Email</label>
+                            <input type="email" class="form-input" id="customer-email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Customer Phone</label>
+                            <input type="tel" class="form-input" id="customer-phone">
+                        </div>
+                    </div>
+
+                    <div class="invoice-items">
+                        <label class="form-label" style="margin-bottom: 12px;">Invoice Items</label>
+                        <div id="items-container">
+                            <div class="item-row">
+                                <div class="form-group">
+                                    <input type="text" class="form-input item-description" placeholder="Description" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" class="form-input item-quantity" placeholder="Qty" min="1" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" class="form-input item-price" placeholder="Price" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="number" class="form-input item-total" placeholder="Total" readonly>
+                                </div>
+                                <button type="button" class="remove-item-btn" onclick="removeItem(this)" style="visibility:hidden;">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-item-btn" onclick="addItem()">+ Add Item</button>
+                    </div>
+
+                    <div class="invoice-summary">
+                        <div class="summary-row"><span>Subtotal:</span><span id="subtotal">₦0.00</span></div>
+                        <div class="summary-row"><span id="tax-label">Tax (10%):</span><span id="tax">₦0.00</span></div>
+                        <div class="summary-row total"><span>Total:</span><span id="total">₦0.00</span></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-textarea" id="invoice-notes" placeholder="Payment terms, thank you message, etc." rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeInvoiceModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Invoice Modal -->
+    <div id="view-invoice-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="view-modal-title">Invoice Details</div>
+                <button class="close-btn" onclick="closeViewModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="invoice-preview-container" class="invoice-preview"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button class="btn btn-secondary" onclick="editCurrentInvoice()">✏️ Edit</button>
+                <button class="btn btn-primary" onclick="printInvoice()">🖨️ Print / Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customer-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title" id="customer-modal-title">Add New Customer</div>
+                <button class="close-btn" onclick="closeCustomerModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="customer-form" onsubmit="return false;">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Customer Name *</label>
+                            <input type="text" class="form-input" id="customer-form-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="customer-form-email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-input" id="customer-form-phone">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-textarea" id="customer-form-address" rows="3"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea class="form-textarea" id="customer-form-notes" rows="2"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCustomerModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="./invoHub.js"></script>
+</body>
+</html>
