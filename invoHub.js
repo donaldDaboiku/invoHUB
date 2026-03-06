@@ -2,7 +2,6 @@
 'use strict';
 
 // ==================== CONFIGURATION ====================
-// Replace this URL with your actual Netlify/Vercel function URL after deployment
 const GUMROAD_PRODUCT_PERMALINK = 'QDQR3nOYx2wXbctQEB75lg=='; // Get from Gumroad Dashboard
 
 // Gumroad product page URL — replace with your actual product URL

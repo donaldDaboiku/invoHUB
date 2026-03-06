@@ -78,8 +78,9 @@ body {
 
 .license-gate-logo {
     font-size: 48px;
-    margin-bottom: 16px;
-    
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
 }
 
 .license-gate-title {
@@ -1092,14 +1093,154 @@ body {
 }
 
 /* Responsive */
+/* ==================== DEMO BANNER ==================== */
+:root { --demo-banner-height: 0px; }
+
+.demo-banner-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+.demo-banner-text { text-align: center; }
+
+.demo-banner-cta {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    text-decoration: none;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: background 0.15s;
+}
+.demo-banner-cta:hover { background: rgba(255,255,255,0.35); }
+
+/* Push app below banner */
+#main-app { padding-top: var(--demo-banner-height) !important; }
+
+/* ==================== RESPONSIVE TABLES ==================== */
+.desktop-only { display: table; }
+.mobile-only  { display: none; }
+
+/* Mobile card list */
+.mobile-cards { display: none; flex-direction: column; gap: 10px; padding: 12px 0; }
+
+.mob-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mob-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.mob-card-num  { font-weight: 700; font-size: 14px; color: var(--text); }
+.mob-card-customer { font-size: 15px; color: var(--text); font-weight: 500; }
+.mob-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.mob-card-meta strong { color: var(--text); font-size: 15px; }
+.mob-badge {
+    font-size: 11px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 8px;
+    color: var(--text-muted);
+}
+.mob-card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 2px;
+}
+.mob-btn {
+    flex: 1;
+    padding: 9px 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+}
+.mob-btn:hover { background: rgba(255,255,255,0.1); }
+.mob-btn-del {
+    flex: 0 0 44px;
+    color: var(--danger, #f91880);
+    border-color: rgba(249,24,128,0.2);
+    background: rgba(249,24,128,0.05);
+}
+.mob-btn-del:hover { background: rgba(249,24,128,0.12); }
+
+/* ==================== MOBILE / TABLET ==================== */
+
 @media (max-width: 768px) {
     .sidebar { display: none; }
-    .content { padding: 20px; }
-    .header { padding: 16px 20px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .content { padding: 16px; }
+    .header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-grid { grid-template-columns: 1fr; }
     .item-row { grid-template-columns: 1fr 1fr; }
-    .license-gate-card { padding: 32px 24px; }
+    .license-gate-card { padding: 32px 20px; }
     .invoice-preview-parties { grid-template-columns: 1fr; gap: 24px; }
-    #privacy-notice { padding: 16px 20px; flex-direction: column; }
+    #privacy-notice { padding: 14px 16px; flex-direction: column; }
+
+    /* Swap table → cards */
+    .desktop-only { display: none !important; }
+    .mobile-only  { display: block; }
+    .mobile-cards { display: flex; }
+
+    /* Modal — full screen sheet on mobile */
+    .modal { padding: 0; align-items: flex-end; }
+    .modal-content {
+        max-width: 100%;
+        width: 100%;
+        max-height: calc(100dvh - var(--demo-banner-height, 0px) - 16px);
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+    }
+    .modal-footer { flex-direction: row; }
+    .modal-footer .btn { flex: 1; justify-content: center; }
+
+    /* Demo banner compact on mobile */
+    .demo-banner-bar { padding: 8px 14px; font-size: 12px; gap: 8px; }
+    .demo-banner-cta { padding: 4px 12px; font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { padding: 14px 12px; }
+    .item-row { grid-template-columns: 1fr; }
+    .mob-btn { font-size: 12px; padding: 8px 4px; }
 }
