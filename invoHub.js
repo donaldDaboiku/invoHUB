@@ -1022,97 +1022,97 @@ function generateInvoicePreview(invoice) {
     const docTitle = isPaid ? 'Payment Receipt' : 'Invoice';
 
     const html = `
-        <div class="invoice-preview-header">
-        <div class="invoice-document">
-            ${isDemoMode() ? '<div class="demo-watermart">DEMO VERSION- Purchase license to remove watermark</div>' : ''}
-        
-            <div class="company-info">
-                ${logo ? `<img src="${logo}" alt="Logo" class="company-logo">` : ''}
-                <h2>${escapeHtml(settings.companyName || 'Your Company Name')}</h2>
-                <p>${settings.companyAddress ? escapeHtml(settings.companyAddress).replace(/\n/g, '<br>') : 'Company Address'}</p>
-                ${settings.companyEmail ? `<p>Email: ${escapeHtml(settings.companyEmail)}</p>` : ''}
-                ${settings.companyPhone ? `<p>Phone: ${escapeHtml(settings.companyPhone)}</p>` : ''}
-            </div>
-            <div class="invoice-details">
-                <div style="font-size:24px;font-weight:700;color:${isPaid ? '#00ba88' : '#000'}">${docType}</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:16px;">${escapeHtml(invoice.number)}</div>
-                ${isPaid ? `<p style="color:#00ba88;font-weight:600;">✓ PAID</p>` : ''}
-                <p><strong>Date:</strong> ${formatDate(invoice.date)}</p>
-                ${!isPaid ? `<p><strong>Due:</strong> ${formatDate(invoice.dueDate)}</p>` : ''}
-            </div>
-        </div>
+        <div class="invoice-preview">
 
-        <div class="invoice-preview-parties">
-            <div class="party-section">
-                <h3>${isPaid ? 'Received From:' : 'Bill To:'}</h3>
-                <div class="party-details">
-                    <strong>${escapeHtml(invoice.customerName)}</strong><br>
-                    ${invoice.customerAddress ? escapeHtml(invoice.customerAddress).replace(/\n/g, '<br>') + '<br>' : ''}
-                    ${invoice.customerEmail ? `Email: ${escapeHtml(invoice.customerEmail)}<br>` : ''}
-                    ${invoice.customerPhone ? `Phone: ${escapeHtml(invoice.customerPhone)}` : ''}
+            ${isDemoMode() ? '<div class="demo-watermark">DEMO — Purchase license to remove</div>' : ''}
+
+            <!-- TOP: Company info LEFT, Doc details RIGHT -->
+            <div class="inv-top">
+                <div class="inv-company">
+                    ${logo ? `<img src="${logo}" alt="Logo" class="company-logo">` : ''}
+                    <h2>${escapeHtml(settings.companyName || 'Your Company Name')}</h2>
+                    <p>${settings.companyAddress ? escapeHtml(settings.companyAddress).replace(/\n/g, '<br>') : 'Company Address'}</p>
+                    ${settings.companyEmail ? `<p>${escapeHtml(settings.companyEmail)}</p>` : ''}
+                    ${settings.companyPhone ? `<p>${escapeHtml(settings.companyPhone)}</p>` : ''}
+                </div>
+                <div class="inv-docinfo">
+                    <div class="inv-doctype" style="color:${isPaid ? '#00ba88' : '#2563eb'}">${docType}</div>
+                    <div class="inv-number">${escapeHtml(invoice.number)}</div>
+                    ${isPaid ? `<div class="inv-paid-badge">✓ PAID</div>` : ''}
+                    <div class="inv-meta-row"><span>Date:</span><strong>${formatDate(invoice.date)}</strong></div>
+                    ${!isPaid ? `<div class="inv-meta-row"><span>Due:</span><strong>${formatDate(invoice.dueDate)}</strong></div>` : ''}
                 </div>
             </div>
-            <div class="party-section">
-                <h3>${isPaid ? 'Received By:' : 'From:'}</h3>
-                <div class="party-details">
-                    <strong>${escapeHtml(settings.companyName || 'Your Company Name')}</strong><br>
-                    ${settings.companyAddress ? escapeHtml(settings.companyAddress).replace(/\n/g, '<br>') + '<br>' : ''}
-                    ${settings.companyEmail ? `Email: ${escapeHtml(settings.companyEmail)}<br>` : ''}
-                    ${settings.companyPhone ? `Phone: ${escapeHtml(settings.companyPhone)}` : ''}
+
+            <!-- PARTIES: Bill To / Received From -->
+            <div class="inv-parties">
+                <div class="inv-party">
+                    <div class="inv-party-label">${isPaid ? 'Received From' : 'Bill To'}</div>
+                    <strong>${escapeHtml(invoice.customerName)}</strong>
+                    ${invoice.customerAddress ? `<p>${escapeHtml(invoice.customerAddress).replace(/\n/g, '<br>')}</p>` : ''}
+                    ${invoice.customerEmail ? `<p>${escapeHtml(invoice.customerEmail)}</p>` : ''}
+                    ${invoice.customerPhone ? `<p>${escapeHtml(invoice.customerPhone)}</p>` : ''}
+                </div>
+                <div class="inv-party">
+                    <div class="inv-party-label">${isPaid ? 'Received By' : 'From'}</div>
+                    <strong>${escapeHtml(settings.companyName || 'Your Company Name')}</strong>
+                    ${settings.companyAddress ? `<p>${escapeHtml(settings.companyAddress).replace(/\n/g, '<br>')}</p>` : ''}
+                    ${settings.companyEmail ? `<p>${escapeHtml(settings.companyEmail)}</p>` : ''}
+                    ${settings.companyPhone ? `<p>${escapeHtml(settings.companyPhone)}</p>` : ''}
                 </div>
             </div>
-        </div>
 
-        ${isPaid ? '<p style="text-align:center;color:#00ba88;font-weight:600;margin-bottom:24px;">Payment received in full. Thank you for your business!</p>' : ''}
+            ${isPaid ? '<p class="inv-thankyou">✓ Payment received in full. Thank you for your business!</p>' : ''}
 
-        <table class="invoice-preview-table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th class="text-right">Qty</th>
-                    <th class="text-right">Unit Price</th>
-                    <th class="text-right">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${invoice.items.map(item => `
+            <!-- LINE ITEMS TABLE -->
+            <table class="invoice-preview-table">
+                <thead>
                     <tr>
-                        <td>${escapeHtml(item.description)}</td>
-                        <td class="text-right">${item.quantity}</td>
-                        <td class="text-right">${formatCurrency(item.price)}</td>
-                        <td class="text-right">${formatCurrency(item.total)}</td>
-                    </tr>`).join('')}
-            </tbody>
-        </table>
+                        <th>Description</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${invoice.items.map(item => `
+                        <tr>
+                            <td>${escapeHtml(item.description)}</td>
+                            <td class="text-right">${item.quantity}</td>
+                            <td class="text-right">${formatCurrency(item.price)}</td>
+                            <td class="text-right">${formatCurrency(item.total)}</td>
+                        </tr>`).join('')}
+                </tbody>
+            </table>
 
-        <div class="invoice-preview-summary">
-            <div class="summary-row" style="color:#000;"><span>Subtotal:</span><span>${formatCurrency(invoice.subtotal)}</span></div>
-            <div class="summary-row" style="color:#000;"><span>Tax (${settings.taxRate || 0}%):</span><span>${formatCurrency(invoice.tax)}</span></div>
-            <div class="summary-row total" style="color:#000;">
-                <span>${isPaid ? 'Amount Paid:' : 'Total Due:'}</span>
-                <span>${formatCurrency(invoice.total)}</span>
-            </div>
-        </div>
-
-        ${invoice.notes ? `
-            <div style="margin-top:40px;">
-                <h3 style="font-size:13px;text-transform:uppercase;color:#666;margin-bottom:10px;">Notes:</h3>
-                <p style="line-height:1.8;">${escapeHtml(invoice.notes).replace(/\n/g, '<br>')}</p>
-            </div>` : ''}
-
-        ${!isPaid && (settings.bankName || settings.accountName || settings.accountNumber) ? `
-            <div class="invoice-preview-footer">
-                <div class="bank-details">
-                    <h3>Payment Details:</h3>
-                    ${settings.bankName ? `<p><strong>Bank:</strong> ${escapeHtml(settings.bankName)}</p>` : ''}
-                    ${settings.accountName ? `<p><strong>Account Name:</strong> ${escapeHtml(settings.accountName)}</p>` : ''}
-                    ${settings.accountNumber ? `<p><strong>Account Number:</strong> ${escapeHtml(settings.accountNumber)}</p>` : ''}
-                    ${settings.routingNumber ? `<p><strong>Routing/Sort Code:</strong> ${escapeHtml(settings.routingNumber)}</p>` : ''}
-                    ${settings.swiftCode ? `<p><strong>SWIFT/BIC:</strong> ${escapeHtml(settings.swiftCode)}</p>` : ''}
-                    ${settings.iban ? `<p><strong>IBAN:</strong> ${escapeHtml(settings.iban)}</p>` : ''}
+            <!-- SUMMARY -->
+            <div class="inv-summary">
+                <div class="inv-summary-row"><span>Subtotal</span><span>${formatCurrency(invoice.subtotal)}</span></div>
+                <div class="inv-summary-row"><span>Tax (${settings.taxRate || 0}%)</span><span>${formatCurrency(invoice.tax)}</span></div>
+                <div class="inv-summary-row inv-summary-total">
+                    <span>${isPaid ? 'Amount Paid' : 'Total Due'}</span>
+                    <span>${formatCurrency(invoice.total)}</span>
                 </div>
-            </div>` : ''}
             </div>
+
+            ${invoice.notes ? `
+            <div class="inv-notes">
+                <div class="inv-section-label">Notes</div>
+                <p>${escapeHtml(invoice.notes).replace(/\n/g, '<br>')}</p>
+            </div>` : ''}
+
+            ${!isPaid && (settings.bankName || settings.accountName || settings.accountNumber) ? `
+            <div class="inv-bank">
+                <div class="inv-section-label">Payment Details</div>
+                ${settings.bankName      ? `<p><span>Bank:</span> ${escapeHtml(settings.bankName)}</p>` : ''}
+                ${settings.accountName   ? `<p><span>Account Name:</span> ${escapeHtml(settings.accountName)}</p>` : ''}
+                ${settings.accountNumber ? `<p><span>Account Number:</span> ${escapeHtml(settings.accountNumber)}</p>` : ''}
+                ${settings.routingNumber ? `<p><span>Sort Code:</span> ${escapeHtml(settings.routingNumber)}</p>` : ''}
+                ${settings.swiftCode     ? `<p><span>SWIFT:</span> ${escapeHtml(settings.swiftCode)}</p>` : ''}
+                ${settings.iban          ? `<p><span>IBAN:</span> ${escapeHtml(settings.iban)}</p>` : ''}
+            </div>` : ''}
+
+        </div>
     `;
 
     document.getElementById('invoice-preview-container').innerHTML = html;
@@ -1121,6 +1121,205 @@ function generateInvoicePreview(invoice) {
 
 function printInvoice() {
     window.print();
+}
+
+// function generateInvoicePreview(invoice) {
+//     const settings = getSettings();
+//     const logo = getLogo();
+//     const isPaid = invoice.status === 'paid';
+//     const docType = isPaid ? 'RECEIPT' : 'INVOICE';
+//     const docTitle = isPaid ? 'Payment Receipt' : 'Invoice';
+
+//     const html = `
+//         <div class="invoice-preview-header">
+//         <div class="invoice-document">
+//             ${isDemoMode() ? '<div class="demo-watermart">DEMO VERSION- Purchase license to remove watermark</div>' : ''}
+        
+//             <div class="company-info">
+//                 ${logo ? `<img src="${logo}" alt="Logo" class="company-logo">` : ''}
+//                 <h2>${escapeHtml(settings.companyName || 'Your Company Name')}</h2>
+//                 <p>${settings.companyAddress ? escapeHtml(settings.companyAddress).replace(/\n/g, '<br>') : 'Company Address'}</p>
+//                 ${settings.companyEmail ? `<p>Email: ${escapeHtml(settings.companyEmail)}</p>` : ''}
+//                 ${settings.companyPhone ? `<p>Phone: ${escapeHtml(settings.companyPhone)}</p>` : ''}
+//             </div>
+//             <div class="invoice-details">
+//                 <div style="font-size:24px;font-weight:700;color:${isPaid ? '#00ba88' : '#000'}">${docType}</div>
+//                 <div style="font-size:18px;font-weight:700;margin-bottom:16px;">${escapeHtml(invoice.number)}</div>
+//                 ${isPaid ? `<p style="color:#00ba88;font-weight:600;">✓ PAID</p>` : ''}
+//                 <p><strong>Date:</strong> ${formatDate(invoice.date)}</p>
+//                 ${!isPaid ? `<p><strong>Due:</strong> ${formatDate(invoice.dueDate)}</p>` : ''}
+//             </div>
+//         </div>
+
+//         <div class="invoice-preview-parties">
+//             <div class="party-section">
+//                 <h3>${isPaid ? 'Received From:' : 'Bill To:'}</h3>
+//                 <div class="party-details">
+//                     <strong>${escapeHtml(invoice.customerName)}</strong><br>
+//                     ${invoice.customerAddress ? escapeHtml(invoice.customerAddress).replace(/\n/g, '<br>') + '<br>' : ''}
+//                     ${invoice.customerEmail ? `Email: ${escapeHtml(invoice.customerEmail)}<br>` : ''}
+//                     ${invoice.customerPhone ? `Phone: ${escapeHtml(invoice.customerPhone)}` : ''}
+//                 </div>
+//             </div>
+//             <div class="party-section">
+//                 <h3>${isPaid ? 'Received By:' : 'From:'}</h3>
+//                 <div class="party-details">
+//                     <strong>${escapeHtml(settings.companyName || 'Your Company Name')}</strong><br>
+//                     ${settings.companyAddress ? escapeHtml(settings.companyAddress).replace(/\n/g, '<br>') + '<br>' : ''}
+//                     ${settings.companyEmail ? `Email: ${escapeHtml(settings.companyEmail)}<br>` : ''}
+//                     ${settings.companyPhone ? `Phone: ${escapeHtml(settings.companyPhone)}` : ''}
+//                 </div>
+//             </div>
+//         </div>
+
+//         ${isPaid ? '<p style="text-align:center;color:#00ba88;font-weight:600;margin-bottom:24px;">Payment received in full. Thank you for your business!</p>' : ''}
+
+//         <table class="invoice-preview-table">
+//             <thead>
+//                 <tr>
+//                     <th>Description</th>
+//                     <th class="text-right">Qty</th>
+//                     <th class="text-right">Unit Price</th>
+//                     <th class="text-right">Total</th>
+//                 </tr>
+//             </thead>
+//             <tbody>
+//                 ${invoice.items.map(item => `
+//                     <tr>
+//                         <td>${escapeHtml(item.description)}</td>
+//                         <td class="text-right">${item.quantity}</td>
+//                         <td class="text-right">${formatCurrency(item.price)}</td>
+//                         <td class="text-right">${formatCurrency(item.total)}</td>
+//                     </tr>`).join('')}
+//             </tbody>
+//         </table>
+
+//         <div class="invoice-preview-summary">
+//             <div class="summary-row" style="color:#000;"><span>Subtotal:</span><span>${formatCurrency(invoice.subtotal)}</span></div>
+//             <div class="summary-row" style="color:#000;"><span>Tax (${settings.taxRate || 0}%):</span><span>${formatCurrency(invoice.tax)}</span></div>
+//             <div class="summary-row total" style="color:#000;">
+//                 <span>${isPaid ? 'Amount Paid:' : 'Total Due:'}</span>
+//                 <span>${formatCurrency(invoice.total)}</span>
+//             </div>
+//         </div>
+
+//         ${invoice.notes ? `
+//             <div style="margin-top:40px;">
+//                 <h3 style="font-size:13px;text-transform:uppercase;color:#666;margin-bottom:10px;">Notes:</h3>
+//                 <p style="line-height:1.8;">${escapeHtml(invoice.notes).replace(/\n/g, '<br>')}</p>
+//             </div>` : ''}
+
+//         ${!isPaid && (settings.bankName || settings.accountName || settings.accountNumber) ? `
+//             <div class="invoice-preview-footer">
+//                 <div class="bank-details">
+//                     <h3>Payment Details:</h3>
+//                     ${settings.bankName ? `<p><strong>Bank:</strong> ${escapeHtml(settings.bankName)}</p>` : ''}
+//                     ${settings.accountName ? `<p><strong>Account Name:</strong> ${escapeHtml(settings.accountName)}</p>` : ''}
+//                     ${settings.accountNumber ? `<p><strong>Account Number:</strong> ${escapeHtml(settings.accountNumber)}</p>` : ''}
+//                     ${settings.routingNumber ? `<p><strong>Routing/Sort Code:</strong> ${escapeHtml(settings.routingNumber)}</p>` : ''}
+//                     ${settings.swiftCode ? `<p><strong>SWIFT/BIC:</strong> ${escapeHtml(settings.swiftCode)}</p>` : ''}
+//                     ${settings.iban ? `<p><strong>IBAN:</strong> ${escapeHtml(settings.iban)}</p>` : ''}
+//                 </div>
+//             </div>` : ''}
+//             </div>
+//     `;
+
+//     document.getElementById('invoice-preview-container').innerHTML = html;
+//     document.getElementById('view-modal-title').textContent = docTitle;
+// }
+
+// function printInvoice() {
+//     window.print();
+// }
+
+
+
+function printInvoice() {
+    const previewEl = document.getElementById('invoice-preview-container');
+    if (!previewEl) return;
+
+    // Grab the invoice HTML and the app's stylesheet
+    const invoiceHTML = previewEl.innerHTML;
+    const cssHref = document.querySelector('link[href*="invoHub.css"]')?.href || './invoHub.css';
+
+    // Open a blank window, write only the invoice into it, then print
+    const win = window.open('', '_blank', 'width=900,height=700');
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <link rel="stylesheet" href="${cssHref}">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .invoice-preview {
+            padding: 20mm;
+            font-size: 11pt;
+            color: #000;
+            background: white;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+        .inv-top {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            gap: 40px !important;
+            padding-bottom: 16pt !important;
+            border-bottom: 2px solid #e5e7eb !important;
+            margin-bottom: 20pt !important;
+            flex-wrap: nowrap !important;
+        }
+        .inv-company { flex: 1; min-width: 0; }
+        .inv-docinfo { text-align: right; flex-shrink: 0; min-width: 140px; }
+        .inv-parties {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            gap: 40px !important;
+            margin-bottom: 20pt !important;
+        }
+        .inv-party { flex: 1; min-width: 0; }
+        .inv-party:last-child { text-align: right; }
+        .inv-summary {
+            margin-left: auto !important;
+            margin-right: 0 !important;
+            width: 280px !important;
+        }
+        .invoice-preview-table { width: 100%; border-collapse: collapse; margin-bottom: 16pt; }
+        .invoice-preview-table th { background: #f5f5f5; padding: 8pt; font-size: 9pt; text-transform: uppercase; border-bottom: 2pt solid #e5e7eb; }
+        .invoice-preview-table td { padding: 8pt; border-bottom: 1pt solid #f3f4f6; font-size: 10pt; }
+        .text-right { text-align: right; }
+        .inv-summary-row { display: flex; justify-content: space-between; padding: 6pt 10pt; border-bottom: 1pt solid #f3f4f6; font-size: 10pt; }
+        .inv-summary-total { font-weight: 700; font-size: 12pt; background: #f8f9fa; }
+        .inv-party-label { font-size: 8pt; text-transform: uppercase; color: #888; letter-spacing: 0.08em; margin-bottom: 5pt; }
+        .inv-doctype { font-size: 22pt; font-weight: 800; }
+        .inv-number { font-size: 14pt; font-weight: 700; margin-bottom: 8pt; }
+        .inv-paid-badge { background: #dcfce7; color: #16a34a; padding: 2pt 8pt; border-radius: 20pt; font-size: 9pt; display: inline-block; margin-bottom: 6pt; }
+        .inv-meta-row { display: flex; justify-content: flex-end; gap: 8px; font-size: 9pt; color: #555; margin-bottom: 2pt; }
+        .inv-thankyou { text-align: center; color: #16a34a; font-weight: 600; padding: 8pt; background: #f0fdf4; border-radius: 4pt; margin-bottom: 16pt; }
+        .inv-notes { padding: 10pt; background: #f8f9fa; border-radius: 4pt; margin-top: 16pt; }
+        .inv-bank { margin-top: 16pt; padding-top: 12pt; border-top: 1pt solid #e5e7eb; }
+        .inv-section-label { font-size: 8pt; text-transform: uppercase; color: #888; letter-spacing: 0.08em; margin-bottom: 6pt; }
+        .demo-watermark { display: none; }
+        @media print {
+            body { margin: 0; }
+            .invoice-preview { padding: 15mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-preview">${invoiceHTML}</div>
+    <script>
+        window.onload = function() {
+            setTimeout(function() { window.print(); window.close(); }, 400);
+        };
+    </script>
+</body>
+</html>`);
+    win.document.close();
 }
 
 // ==================== ITEMS ====================

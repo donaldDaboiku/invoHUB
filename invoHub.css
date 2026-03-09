@@ -83,12 +83,8 @@ body {
 
 .license-gate-logo {
     font-size: 48px;
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-bottom: 16px;
+    
 }
 
 .license-gate-title {
@@ -747,6 +743,12 @@ body {
 
 .modal-body { padding: 24px; }
 
+/* Invoice preview container — no extra padding, preview handles its own */
+#invoice-preview-container {
+    width: 100%;
+    overflow: hidden;
+}
+
 .modal-footer {
     padding: 20px 24px;
     border-top: 1px solid var(--border);
@@ -970,95 +972,267 @@ body {
     color: var(--success);
 }
 
-/* Invoice Preview */
+/* ==================== INVOICE PREVIEW ==================== */
+/* Self-contained white document — works at any screen width */
+
 .invoice-preview {
-    background: white;
-    color: #000;
-    padding: 40px;
+    background: #fff;
+    color: #111;
+    padding: clamp(20px, 4vw, 48px);
     border-radius: 8px;
+    font-size: clamp(12px, 1.8vw, 14px);
+    line-height: 1.6;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
-.invoice-preview-header {
+/* Watermark */
+.demo-watermark {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    text-align: center;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+/* TOP ROW: company left, doc info right */
+.inv-top {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 40px;
+    gap: 54px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
-.company-info { flex: 1; }
+.inv-company {
+    flex: 1;
+    min-width: 0;
+}
+
+.inv-company h2 {
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #111;
+}
+
+.inv-company p {
+    color: #555;
+    margin-bottom: 2px;
+    font-size: clamp(11px, 1.8vw, 13px);
+}
 
 .company-logo {
-    max-width: 200px;
-    max-height: 80px;
-    margin-bottom: 16px;
+    max-width: min(160px, 40%);
+    max-height: 70px;
+    margin-bottom: 12px;
     display: block;
 }
 
-.invoice-details { text-align: right; }
-
-.invoice-preview-parties {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 250px;
-    margin-bottom: 40px;
+.inv-docinfo {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 140px;
 }
 
-.party-section h3 {
-    font-size: 13px;
-    text-transform: uppercase;
-    color: #666;
+.inv-doctype {
+    font-size: clamp(18px, 4vw, 28px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+}
+
+.inv-number {
+    font-size: clamp(13px, 2.5vw, 17px);
+    font-weight: 700;
+    color: #333;
     margin-bottom: 10px;
-    letter-spacing: 0.5px;
 }
 
-.party-details { line-height: 1.8; }
+.inv-paid-badge {
+    display: inline-block;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+}
 
+.inv-meta-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    font-size: clamp(11px, 1.8vw, 13px);
+    color: #555;
+    margin-bottom: 2px;
+}
+.inv-meta-row strong { color: #111; }
+
+/* PARTIES section */
+.inv-parties {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+.inv-parties .inv-party {
+    flex: 1;
+    min-width: 0;
+}
+
+.inv-party {
+    font-size: clamp(11px, 1.8vw, 13px);
+    color: #333;
+}
+
+.inv-party-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.inv-party strong {
+    display: block;
+    font-size: clamp(13px, 2vw, 15px);
+    color: #111;
+    margin-bottom: 4px;
+}
+
+.inv-party p {
+    margin-bottom: 2px;
+    color: #555;
+    overflow-wrap: break-word;
+}
+
+/* Thank you message */
+.inv-thankyou {
+    text-align: center;
+    color: #16a34a;
+    font-weight: 600;
+    margin-bottom: 24px;
+    padding: 10px;
+    background: #f0fdf4;
+    border-radius: 6px;
+    font-size: clamp(12px, 1.8vw, 14px);
+}
+
+/* Line items table */
 .invoice-preview-table {
     width: 100%;
-    margin-bottom: 40px;
+    margin-bottom: 28px;
     border-collapse: collapse;
+    font-size: clamp(11px, 1.8vw, 13px);
 }
 
 .invoice-preview-table th {
-    background: #f5f5f5;
-    padding: 12px;
+    background: #f8f9fa;
+    padding: clamp(8px, 1.5vw, 12px);
     text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #e0e0e0;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
 }
 
 .invoice-preview-table td {
-    padding: 12px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: clamp(8px, 1.5vw, 12px);
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
 }
 
-.invoice-preview-table tr:last-child td {
-    border-bottom: none;
+.invoice-preview-table tr:last-child td { border-bottom: none; }
+.text-right { text-align: right; white-space: nowrap; }
+
+/* Summary totals — right-aligned below invoice-preview-table */
+.invoice-preview-table + .inv-summary {
+    margin-top: -4px;
 }
-
-.text-right { text-align: right; }
-
-.invoice-preview-summary {
+.inv-summary {
+    display: block;
     margin-left: auto;
-    width: 300px;
+    margin-right: 0;
+    width: min(300px, 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-bottom: 28px;
 }
 
-.invoice-preview-footer {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e0e0;
+.inv-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 14px;
+    font-size: clamp(12px, 1.8vw, 13px);
+    color: #555;
+    border-bottom: 1px solid #f3f4f6;
+}
+.inv-summary-row:last-child { border-bottom: none; }
+
+.inv-summary-total {
+    background: #f8f9fa;
+    font-weight: 700;
+    font-size: clamp(13px, 2vw, 15px) !important;
+    color: #111 !important;
 }
 
-.bank-details h3 {
-    font-size: 13px;
+/* Section labels */
+.inv-section-label {
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    color: #666;
-    margin-bottom: 10px;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 8px;
 }
 
-.bank-details p { margin-bottom: 4px; line-height: 1.8; }
+/* Notes */
+.inv-notes {
+    margin-top: 24px;
+    padding: 14px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: clamp(11px, 1.8vw, 13px);
+    color: #444;
+}
+
+/* Bank details */
+.inv-bank {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    font-size: clamp(11px, 1.8vw, 13px);
+}
+
+.inv-bank p {
+    margin-bottom: 4px;
+    color: #555;
+}
+
+.inv-bank p span {
+    color: #888;
+    margin-right: 4px;
+}
 
 /* Footer */
 #app-footer {
@@ -1090,14 +1264,50 @@ body {
 .page { display: flex; flex-direction: column; flex: 1; }
 .page.hidden { display: none; }
 
-/* Print styles */
+/* ==================== PRINT STYLES ==================== */
 @media print {
-    .sidebar, #app-footer, .modal-header, .modal-footer, #privacy-notice, #license-gate {
-        display: none !important;
+    /* Hide everything except the invoice */
+    .sidebar, #app-footer, .modal-header, .modal-footer,
+    #privacy-notice, #license-gate, #demo-banner,
+    .mob-nav-drawer, .mob-nav-overlay, .demo-banner-bar,
+    .modal-footer, button { display: none !important; }
+
+    /* Modal becomes the page */
+    body, html { background: white !important; margin: 0; padding: 0; }
+    .modal { display: block !important; position: static !important; background: none !important; padding: 0 !important; }
+    .modal-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        max-height: none !important;
     }
-    .modal-content { max-width: 100%; border: none; }
-    .modal-body { padding: 0; }
-    .invoice-preview { padding: 0; }
+    .modal-body { padding: 0 !important; }
+
+    /* Invoice document */
+    .invoice-preview {
+        padding: 20mm !important;
+        font-size: 11pt !important;
+        color: #000 !important;
+        background: white !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Keep two-column layout on paper */
+    .inv-top    { flex-wrap: nowrap !important; flex-direction: row !important; }
+    .inv-parties { flex-direction: row !important; }
+
+    /* Table */
+    .invoice-preview-table { font-size: 10pt !important; }
+    .invoice-preview-table th,
+    .invoice-preview-table td { padding: 8pt !important; }
+
+    /* Page break rules */
+    .inv-summary, .inv-bank { page-break-inside: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
 }
 
 /* Responsive */
@@ -1141,6 +1351,96 @@ body {
 
 /* Push app below banner */
 #main-app { padding-top: var(--demo-banner-height) !important; }
+
+
+/* ==================== HAMBURGER BUTTON ==================== */
+.mob-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.mob-hamburger:hover { background: rgba(255,255,255,0.08); }
+
+/* ==================== MOBILE NAV DRAWER ==================== */
+.mob-nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1100;
+    backdrop-filter: blur(2px);
+}
+.mob-nav-overlay.open { display: block; }
+
+.mob-nav-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mob-nav-drawer.open { transform: translateX(0); }
+
+.mob-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+}
+.mob-nav-header .logo-text { font-size: 20px; font-weight: 700; }
+.mob-nav-header .logo-text span { color: var(--primary); }
+
+.mob-nav-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1;
+}
+.mob-nav-close:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+
+.mob-nav-list {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+}
+
+.mob-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+.mob-nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.mob-nav-item.active {
+    background: rgba(255,107,53,0.1);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
+}
+.mob-nav-item .nav-icon { font-size: 20px; }
 
 /* ==================== RESPONSIVE TABLES ==================== */
 .desktop-only { display: table; }
@@ -1283,6 +1583,17 @@ body {
     /* Search bar */
     .search-bar, .filter-bar { flex-direction: column; }
     .search-input, .filter-select { width: 100%; box-sizing: border-box; }
+
+    /* Show hamburger */
+    .mob-hamburger { display: flex; align-items: center; }
+
+    /* Invoice preview — stack parties on small screens */
+    .inv-top { flex-direction: column; gap: 16px; }
+    .inv-docinfo { text-align: left; }
+    .inv-meta-row { justify-content: flex-start; }
+    .inv-parties { flex-direction: column !important; gap: 16px; }
+    .inv-parties .inv-party { flex: none; width: 100%; }
+    .inv-summary { width: 100%; margin-right: auto; }
 }
 
 @media (max-width: 480px) {
